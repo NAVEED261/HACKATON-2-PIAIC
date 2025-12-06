@@ -1,210 +1,280 @@
-# Claude Code Rules
+# CLAUDE.md
 
-This file is generated during init for the selected agent.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-You are an expert AI assistant specializing in Spec-Driven Development (SDD). Your primary goal is to work with the architext to build products.
+## Project Overview
 
-## Task context
+**AI-Native Todo SaaS Platform** - A five-phase evolution from Python CLI to cloud-native enterprise application with AI chatbot integration.
 
-**Your Surface:** You operate on a project level, providing guidance to users and executing development tasks via a defined set of tools.
+**Current Phase**: Phase 1 - Console Todo App (Python CLI with JSON storage)
 
-**Your Success is Measured By:**
-- All outputs strictly follow the user intent.
-- Prompt History Records (PHRs) are created automatically and accurately for every user prompt.
-- Architectural Decision Record (ADR) suggestions are made intelligently for significant decisions.
-- All changes are small, testable, and reference code precisely.
+## Phase Evolution Architecture
 
-## Core Guarantees (Product Promise)
+This project follows a strict **Phase-Driven Evolution** where each phase builds on the previous:
 
-- Record every user input verbatim in a Prompt History Record (PHR) after every user message. Do not truncate; preserve full multiline input.
-- PHR routing (all under `history/prompts/`):
-  - Constitution → `history/prompts/constitution/`
-  - Feature-specific → `history/prompts/<feature-name>/`
-  - General → `history/prompts/general/`
-- ADR suggestions: when an architecturally significant decision is detected, suggest: "📋 Architectural decision detected: <brief>. Document? Run `/sp.adr <title>`." Never auto‑create ADRs; require user consent.
+1. **Phase 1** (Current): Python CLI with JSON file storage, stdlib only
+2. **Phase 2**: Next.js frontend + FastAPI backend + Neon PostgreSQL + JWT auth
+3. **Phase 3**: OpenAI Agents SDK + MCP tools for natural language task management
+4. **Phase 4**: Docker + Kubernetes (Minikube) + Helm charts
+5. **Phase 5**: DigitalOcean Kubernetes + Kafka event streaming + Dapr service mesh
 
-## Development Guidelines
+**⚠️ CRITICAL**: Phase N+1 cannot start until Phase N is complete and tested. No premature features from future phases.
 
-### 1. Authoritative Source Mandate:
-Agents MUST prioritize and use MCP tools and CLI commands for all information gathering and task execution. NEVER assume a solution from internal knowledge; all methods require external verification.
+## Current Phase 1 Tech Stack
 
-### 2. Execution Flow:
-Treat MCP servers as first-class tools for discovery, verification, execution, and state capture. PREFER CLI interactions (running commands and capturing outputs) over manual file creation or reliance on internal knowledge.
+- **Language**: Python 3.11+
+- **Dependencies**: Python stdlib only (json, datetime, pathlib, sys, argparse)
+- **Storage**: JSON file (`tasks.json` in current working directory)
+- **Testing**: pytest (dev dependency)
+- **CLI Framework**: argparse (stdlib)
+- **Performance**: <1s for 100 tasks, <500ms startup
 
-### 3. Knowledge capture (PHR) for Every User Input.
-After completing requests, you **MUST** create a PHR (Prompt History Record).
+## Project Structure
 
-**When to create PHRs:**
-- Implementation work (code changes, new features)
-- Planning/architecture discussions
-- Debugging sessions
-- Spec/task/plan creation
-- Multi-step workflows
+```
+specs/
+├── 001-phase1-console-todo/        # Phase 1 feature documentation
+│   ├── spec.md                      # User stories (P1-P5 prioritized)
+│   ├── plan.md                      # Architecture and technical decisions
+│   ├── tasks.md                     # 75 implementation tasks (TDD workflow)
+│   ├── data-model.md                # Task entity schema
+│   ├── contracts/cli-commands.md    # CLI interface contracts
+│   ├── quickstart.md                # User guide
+│   └── research.md                  # Technology decisions
 
-**PHR Creation Process:**
+src/
+├── todo_cli.py                      # Main CLI entry point (argparse)
+├── models/task.py                   # Task entity (7 fields)
+├── services/
+│   ├── task_service.py              # CRUD operations
+│   └── storage.py                   # JSON persistence (atomic writes)
+└── utils/
+    ├── validators.py                # Input validation
+    └── formatters.py                # Output formatting
 
-1) Detect stage
-   - One of: constitution | spec | plan | tasks | red | green | refactor | explainer | misc | general
+tests/
+├── unit/                            # Pure function tests
+├── integration/                     # Storage and workflow tests
+└── contract/                        # CLI interface contract tests
 
-2) Generate title
-   - 3–7 words; create a slug for the filename.
+.specify/
+├── memory/constitution.md           # Project principles and standards
+├── templates/                       # Spec-Driven Development templates
+└── scripts/                         # Automation scripts
 
-2a) Resolve route (all under history/prompts/)
-  - `constitution` → `history/prompts/constitution/`
-  - Feature stages (spec, plan, tasks, red, green, refactor, explainer, misc) → `history/prompts/<feature-name>/` (requires feature context)
-  - `general` → `history/prompts/general/`
+history/
+├── prompts/                         # Prompt History Records (PHRs)
+└── adr/                            # Architectural Decision Records
+```
 
-3) Prefer agent‑native flow (no shell)
-   - Read the PHR template from one of:
-     - `.specify/templates/phr-template.prompt.md`
-     - `templates/phr-template.prompt.md`
-   - Allocate an ID (increment; on collision, increment again).
-   - Compute output path based on stage:
-     - Constitution → `history/prompts/constitution/<ID>-<slug>.constitution.prompt.md`
-     - Feature → `history/prompts/<feature-name>/<ID>-<slug>.<stage>.prompt.md`
-     - General → `history/prompts/general/<ID>-<slug>.general.prompt.md`
-   - Fill ALL placeholders in YAML and body:
-     - ID, TITLE, STAGE, DATE_ISO (YYYY‑MM‑DD), SURFACE="agent"
-     - MODEL (best known), FEATURE (or "none"), BRANCH, USER
-     - COMMAND (current command), LABELS (["topic1","topic2",...])
-     - LINKS: SPEC/TICKET/ADR/PR (URLs or "null")
-     - FILES_YAML: list created/modified files (one per line, " - ")
-     - TESTS_YAML: list tests run/added (one per line, " - ")
-     - PROMPT_TEXT: full user input (verbatim, not truncated)
-     - RESPONSE_TEXT: key assistant output (concise but representative)
-     - Any OUTCOME/EVALUATION fields required by the template
-   - Write the completed file with agent file tools (WriteFile/Edit).
-   - Confirm absolute path in output.
+## Development Commands
 
-4) Use sp.phr command file if present
-   - If `.**/commands/sp.phr.*` exists, follow its structure.
-   - If it references shell but Shell is unavailable, still perform step 3 with agent‑native tools.
+### Testing (Phase 1)
 
-5) Shell fallback (only if step 3 is unavailable or fails, and Shell is permitted)
-   - Run: `.specify/scripts/bash/create-phr.sh --title "<title>" --stage <stage> [--feature <name>] --json`
-   - Then open/patch the created file to ensure all placeholders are filled and prompt/response are embedded.
+```bash
+# Install dev dependencies
+pip install pytest
 
-6) Routing (automatic, all under history/prompts/)
-   - Constitution → `history/prompts/constitution/`
-   - Feature stages → `history/prompts/<feature-name>/` (auto-detected from branch or explicit feature context)
-   - General → `history/prompts/general/`
+# Run all tests
+pytest tests/ -v
 
-7) Post‑creation validations (must pass)
-   - No unresolved placeholders (e.g., `{{THIS}}`, `[THAT]`).
-   - Title, stage, and dates match front‑matter.
-   - PROMPT_TEXT is complete (not truncated).
-   - File exists at the expected path and is readable.
-   - Path matches route.
+# Run specific test types
+pytest tests/unit/ -v                          # Unit tests only
+pytest tests/integration/ -v                   # Integration tests only
+pytest tests/contract/test_cli_interface.py -v # CLI contract tests
 
-8) Report
-   - Print: ID, path, stage, title.
-   - On any failure: warn but do not block the main command.
-   - Skip PHR only for `/sp.phr` itself.
+# Run tests for specific user story
+pytest tests/ -k "US1" -v                      # User Story 1 tests
+```
 
-### 4. Explicit ADR suggestions
-- When significant architectural decisions are made (typically during `/sp.plan` and sometimes `/sp.tasks`), run the three‑part test and suggest documenting with:
-  "📋 Architectural decision detected: <brief> — Document reasoning and tradeoffs? Run `/sp.adr <decision-title>`"
-- Wait for user consent; never auto‑create the ADR.
+### Running the CLI (Phase 1)
 
-### 5. Human as Tool Strategy
-You are not expected to solve every problem autonomously. You MUST invoke the user for input when you encounter situations that require human judgment. Treat the user as a specialized tool for clarification and decision-making.
+```bash
+# Run CLI directly
+python src/todo_cli.py --help
 
-**Invocation Triggers:**
-1.  **Ambiguous Requirements:** When user intent is unclear, ask 2-3 targeted clarifying questions before proceeding.
-2.  **Unforeseen Dependencies:** When discovering dependencies not mentioned in the spec, surface them and ask for prioritization.
-3.  **Architectural Uncertainty:** When multiple valid approaches exist with significant tradeoffs, present options and get user's preference.
-4.  **Completion Checkpoint:** After completing major milestones, summarize what was done and confirm next steps. 
+# Add task
+python src/todo_cli.py add "Task title" --description "Details" --priority high
 
-## Default policies (must follow)
-- Clarify and plan first - keep business understanding separate from technical plan and carefully architect and implement.
-- Do not invent APIs, data, or contracts; ask targeted clarifiers if missing.
-- Never hardcode secrets or tokens; use `.env` and docs.
-- Prefer the smallest viable diff; do not refactor unrelated code.
-- Cite existing code with code references (start:end:path); propose new code in fenced blocks.
-- Keep reasoning private; output only decisions, artifacts, and justifications.
+# List tasks
+python src/todo_cli.py list
+python src/todo_cli.py list --status pending --priority high
 
-### Execution contract for every request
-1) Confirm surface and success criteria (one sentence).
-2) List constraints, invariants, non‑goals.
-3) Produce the artifact with acceptance checks inlined (checkboxes or tests where applicable).
-4) Add follow‑ups and risks (max 3 bullets).
-5) Create PHR in appropriate subdirectory under `history/prompts/` (constitution, feature-name, or general).
-6) If plan/tasks identified decisions that meet significance, surface ADR suggestion text as described above.
+# Complete task
+python src/todo_cli.py complete <task_id>
 
-### Minimum acceptance criteria
-- Clear, testable acceptance criteria included
-- Explicit error paths and constraints stated
-- Smallest viable change; no unrelated edits
-- Code references to modified/inspected files where relevant
+# Update task
+python src/todo_cli.py update <task_id> --title "New title" --priority high
 
-## Architect Guidelines (for planning)
+# Delete task
+python src/todo_cli.py delete <task_id> --confirm
+```
 
-Instructions: As an expert architect, generate a detailed architectural plan for [Project Name]. Address each of the following thoroughly.
+### Spec-Driven Development Workflow
 
-1. Scope and Dependencies:
-   - In Scope: boundaries and key features.
-   - Out of Scope: explicitly excluded items.
-   - External Dependencies: systems/services/teams and ownership.
+```bash
+# Create constitution (project principles)
+/sp.constitution
 
-2. Key Decisions and Rationale:
-   - Options Considered, Trade-offs, Rationale.
-   - Principles: measurable, reversible where possible, smallest viable change.
+# Create feature specification
+/sp.specify
 
-3. Interfaces and API Contracts:
-   - Public APIs: Inputs, Outputs, Errors.
-   - Versioning Strategy.
-   - Idempotency, Timeouts, Retries.
-   - Error Taxonomy with status codes.
+# Create implementation plan
+/sp.plan
 
-4. Non-Functional Requirements (NFRs) and Budgets:
-   - Performance: p95 latency, throughput, resource caps.
-   - Reliability: SLOs, error budgets, degradation strategy.
-   - Security: AuthN/AuthZ, data handling, secrets, auditing.
-   - Cost: unit economics.
+# Generate task list
+/sp.tasks
 
-5. Data Management and Migration:
-   - Source of Truth, Schema Evolution, Migration and Rollback, Data Retention.
+# Execute implementation (TDD workflow)
+/sp.implement
+```
 
-6. Operational Readiness:
-   - Observability: logs, metrics, traces.
-   - Alerting: thresholds and on-call owners.
-   - Runbooks for common tasks.
-   - Deployment and Rollback strategies.
-   - Feature Flags and compatibility.
+## Constitution Compliance (Phase 1)
 
-7. Risk Analysis and Mitigation:
-   - Top 3 Risks, blast radius, kill switches/guardrails.
+### Test-First Development (NON-NEGOTIABLE)
 
-8. Evaluation and Validation:
-   - Definition of Done (tests, scans).
-   - Output Validation for format/requirements/safety.
+**TDD Workflow**: Write tests → Verify FAIL → Implement → Verify PASS
 
-9. Architectural Decision Record (ADR):
-   - For each significant decision, create an ADR and link it.
+1. Write all test tasks for a user story FIRST (marked in tasks.md)
+2. Run tests and verify they FAIL
+3. Implement functionality
+4. Run tests and verify they PASS
+5. Checkpoint validation before next story
 
-### Architecture Decision Records (ADR) - Intelligent Suggestion
+### Simplicity & Incremental Complexity
 
-After design/architecture work, test for ADR significance:
+**Phase 1 Constraints**:
+- ✅ Pure Python CLI (no frameworks)
+- ✅ Python stdlib only (no external dependencies except pytest for testing)
+- ✅ JSON file storage (simplest persistence)
+- ❌ No web frameworks (deferred to Phase 2)
+- ❌ No database (deferred to Phase 2)
+- ❌ No AI/LLM integration (deferred to Phase 3)
+- ❌ No containers/K8s (deferred to Phase 4)
 
-- Impact: long-term consequences? (e.g., framework, data model, API, security, platform)
-- Alternatives: multiple viable options considered?
-- Scope: cross‑cutting and influences system design?
+## Task Entity Schema
 
-If ALL true, suggest:
-📋 Architectural decision detected: [brief-description]
-   Document reasoning and tradeoffs? Run `/sp.adr [decision-title]`
+The Task model (defined in data-model.md) has 7 fields designed for Phase 2 PostgreSQL migration:
 
-Wait for consent; never auto-create ADRs. Group related decisions (stacks, authentication, deployment) into one ADR when appropriate.
+```python
+{
+  "id": int,              # Sequential, starting from 1
+  "title": str,           # Required, max 200 chars
+  "description": str,     # Optional, max 1000 chars
+  "status": str,          # "pending" or "completed"
+  "priority": str,        # "low", "medium", "high"
+  "due_date": str,        # ISO 8601 (YYYY-MM-DD), optional
+  "created_at": str       # ISO 8601 timestamp, auto-generated
+}
+```
 
-## Basic Project Structure
+## User Stories (Priority Order)
 
-- `.specify/memory/constitution.md` — Project principles
-- `specs/<feature>/spec.md` — Feature requirements
-- `specs/<feature>/plan.md` — Architecture decisions
-- `specs/<feature>/tasks.md` — Testable tasks with cases
-- `history/prompts/` — Prompt History Records
-- `history/adr/` — Architecture Decision Records
-- `.specify/` — SpecKit Plus templates and scripts
+Defined in `specs/001-phase1-console-todo/spec.md`:
 
-## Code Standards
-See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+- **P1**: Add and View Tasks (MVP - 19 tasks)
+- **P2**: Mark Tasks Complete (8 tasks)
+- **P3**: Update Task Details (7 tasks)
+- **P4**: Delete Tasks (7 tasks)
+- **P5**: Filter Tasks by Status (8 tasks)
+
+Each story is independently testable and can be implemented in isolation after the Foundational phase (T007-T012).
+
+## Implementation Tasks (tasks.md)
+
+**Total**: 75 tasks across 8 phases
+
+**MVP Scope** (31 tasks):
+- Phase 1: Setup (T001-T006)
+- Phase 2: Foundational (T007-T012) ⚠️ **BLOCKS all user stories**
+- Phase 3: User Story 1 - Add/View (T013-T031)
+
+**TDD Breakdown**:
+- Test tasks: 30 (40%)
+- Implementation tasks: 45
+
+## Critical Patterns
+
+### Atomic File Writes (storage.py)
+
+Prevent data corruption using temp file + rename pattern:
+
+```python
+import tempfile
+import shutil
+
+def save_tasks(tasks, file_path='tasks.json'):
+    with tempfile.NamedTemporaryFile('w', delete=False, dir='.') as tmp:
+        json.dump(tasks, tmp, indent=2)
+        tmp_path = tmp.name
+    shutil.move(tmp_path, file_path)  # Atomic rename
+```
+
+### Sequential ID Generation (task_service.py)
+
+```python
+def get_next_id(tasks: list) -> int:
+    if not tasks:
+        return 1
+    return max(task['id'] for task in tasks) + 1
+```
+
+### Date Validation (validators.py)
+
+```python
+from datetime import datetime
+
+def validate_date(date_str: str) -> bool:
+    try:
+        datetime.strptime(date_str, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
+```
+
+## Error Handling Standards
+
+- **User Errors** (invalid input, task not found): Exit code 1, friendly message
+- **System Errors** (file I/O, JSON corruption): Exit code 2, recovery suggestion
+- **Success**: Exit code 0
+
+Example:
+```python
+try:
+    tasks = load_tasks()
+except FileNotFoundError:
+    tasks = []  # First run
+except json.JSONDecodeError:
+    print("Error: tasks.json is corrupted. Backup and delete to reset.")
+    sys.exit(2)
+```
+
+## Phase 2 Migration Path
+
+Phase 1 is designed for clean Phase 2 migration:
+
+- Task model → SQLAlchemy ORM model (same 7 fields + user_id)
+- JSON storage → Neon PostgreSQL
+- CLI commands → FastAPI REST endpoints
+- task_service.py → Reusable business logic layer
+
+## Spec-Driven Development (SDD)
+
+This project follows SDD workflow managed via `.specify/` templates and scripts:
+
+1. **Constitution** (`.specify/memory/constitution.md`): Project principles
+2. **Specification** (`specs/<feature>/spec.md`): User stories and requirements
+3. **Plan** (`specs/<feature>/plan.md`): Architecture and technical decisions
+4. **Tasks** (`specs/<feature>/tasks.md`): Implementation task list
+5. **PHRs** (`history/prompts/`): Prompt History Records for traceability
+6. **ADRs** (`history/adr/`): Architectural Decision Records
+
+## Documentation References
+
+- Constitution: `.specify/memory/constitution.md` (comprehensive principles)
+- Phase 1 Spec: `specs/001-phase1-console-todo/spec.md` (user stories P1-P5)
+- Phase 1 Plan: `specs/001-phase1-console-todo/plan.md` (technical context)
+- Phase 1 Tasks: `specs/001-phase1-console-todo/tasks.md` (75 tasks, TDD workflow)
+- Data Model: `specs/001-phase1-console-todo/data-model.md` (Task entity schema)
+- CLI Contracts: `specs/001-phase1-console-todo/contracts/cli-commands.md`
+- User Guide: `specs/001-phase1-console-todo/quickstart.md`
