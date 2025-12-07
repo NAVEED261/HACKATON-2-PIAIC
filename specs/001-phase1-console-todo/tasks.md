@@ -24,12 +24,12 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create src/ directory structure (models/, services/, utils/)
-- [ ] T002 Create tests/ directory structure (unit/, integration/, contract/)
-- [ ] T003 [P] Create src/__init__.py to make src a Python package
-- [ ] T004 [P] Create requirements-dev.txt with pytest dependency
-- [ ] T005 [P] Create .gitignore file (include tasks.json, __pycache__, *.pyc, .pytest_cache)
-- [ ] T006 [P] Create pytest.ini configuration file in project root
+- [X] T001 Create src/ directory structure (models/, services/, utils/)
+- [X] T002 Create tests/ directory structure (unit/, integration/, contract/)
+- [X] T003 [P] Create src/__init__.py to make src a Python package
+- [X] T004 [P] Create requirements-dev.txt with pytest dependency
+- [X] T005 [P] Create .gitignore file (include tasks.json, __pycache__, *.pyc, .pytest_cache)
+- [X] T006 [P] Create pytest.ini configuration file in project root
 
 ---
 
@@ -39,12 +39,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Create Task model in src/models/task.py with all 7 fields from data-model.md
-- [ ] T008 [P] Create validation utilities in src/utils/validators.py (validate_title, validate_date, validate_priority functions)
-- [ ] T009 [P] Create output formatters in src/utils/formatters.py (format_task_list, format_task_single functions)
-- [ ] T010 Create JSON storage module in src/services/storage.py (load_tasks, save_tasks with atomic writes)
-- [ ] T011 Create task service in src/services/task_service.py (get_next_id, create_task, get_all_tasks functions)
-- [ ] T012 Create main CLI entry point in src/todo_cli.py with argparse setup and subparsers
+- [X] T007 Create Task model in src/models/task.py with all 7 fields from data-model.md
+- [X] T008 [P] Create validation utilities in src/utils/validators.py (validate_title, validate_date, validate_priority functions)
+- [X] T009 [P] Create output formatters in src/utils/formatters.py (format_task_list, format_task_single functions)
+- [X] T010 Create JSON storage module in src/services/storage.py (load_tasks, save_tasks with atomic writes)
+- [X] T011 Create task service in src/services/task_service.py (get_next_id, create_task, get_all_tasks functions)
+- [X] T012 Create main CLI entry point in src/todo_cli.py with argparse setup and subparsers
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -60,28 +60,28 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T013 [P] [US1] Write contract test for "add minimal task" in tests/contract/test_cli_interface.py
-- [ ] T014 [P] [US1] Write contract test for "add full task with all options" in tests/contract/test_cli_interface.py
-- [ ] T015 [P] [US1] Write contract test for "add task with empty title error" in tests/contract/test_cli_interface.py
-- [ ] T016 [P] [US1] Write contract test for "add task with invalid date error" in tests/contract/test_cli_interface.py
-- [ ] T017 [P] [US1] Write contract test for "list all tasks" in tests/contract/test_cli_interface.py
-- [ ] T018 [P] [US1] Write contract test for "list empty tasks" in tests/contract/test_cli_interface.py
-- [ ] T019 [P] [US1] Write unit test for Task model creation in tests/unit/test_task_model.py
-- [ ] T020 [P] [US1] Write unit test for validate_title function in tests/unit/test_validators.py
-- [ ] T021 [P] [US1] Write unit test for validate_date function in tests/unit/test_validators.py
-- [ ] T022 [P] [US1] Write unit test for validate_priority function in tests/unit/test_validators.py
-- [ ] T023 [P] [US1] Write unit test for get_next_id function in tests/unit/test_task_service.py
-- [ ] T024 [P] [US1] Write unit test for create_task function in tests/unit/test_task_service.py
-- [ ] T025 [P] [US1] Write integration test for storage load/save in tests/integration/test_storage.py
-- [ ] T026 [P] [US1] Write integration test for add+list workflow in tests/integration/test_cli_workflows.py
+- [X] T013 [P] [US1] Write contract test for "add minimal task" in tests/contract/test_cli_interface.py
+- [X] T014 [P] [US1] Write contract test for "add full task with all options" in tests/contract/test_cli_interface.py
+- [X] T015 [P] [US1] Write contract test for "add task with empty title error" in tests/contract/test_cli_interface.py
+- [X] T016 [P] [US1] Write contract test for "add task with invalid date error" in tests/contract/test_cli_interface.py
+- [X] T017 [P] [US1] Write contract test for "list all tasks" in tests/contract/test_cli_interface.py
+- [X] T018 [P] [US1] Write contract test for "list empty tasks" in tests/contract/test_cli_interface.py
+- [X] T019 [P] [US1] Write unit test for Task model creation in tests/unit/test_task_model.py
+- [X] T020 [P] [US1] Write unit test for validate_title function in tests/unit/test_validators.py
+- [X] T021 [P] [US1] Write unit test for validate_date function in tests/unit/test_validators.py
+- [X] T022 [P] [US1] Write unit test for validate_priority function in tests/unit/test_validators.py
+- [X] T023 [P] [US1] Write unit test for get_next_id function in tests/unit/test_task_service.py
+- [X] T024 [P] [US1] Write unit test for create_task function in tests/unit/test_task_service.py
+- [X] T025 [P] [US1] Write integration test for storage load/save in tests/integration/test_storage.py
+- [X] T026 [P] [US1] Write integration test for add+list workflow in tests/integration/test_cli_workflows.py
 
 ### Implementation for User Story 1
 
-- [ ] T027 [US1] Implement add_task function in src/services/task_service.py (validate input, assign ID, create task dict)
-- [ ] T028 [US1] Implement list_tasks function in src/services/task_service.py (load tasks, apply filters, return list)
-- [ ] T029 [US1] Implement add command handler in src/todo_cli.py (parse args, call add_task, save, print success)
-- [ ] T030 [US1] Implement list command handler in src/todo_cli.py (parse args, call list_tasks, format output)
-- [ ] T031 [US1] Verify all US1 tests pass - run pytest tests/contract/test_cli_interface.py::test_add* and ::test_list*
+- [X] T027 [US1] Implement add_task function in src/services/task_service.py (validate input, assign ID, create task dict)
+- [X] T028 [US1] Implement list_tasks function in src/services/task_service.py (load tasks, apply filters, return list)
+- [X] T029 [US1] Implement add command handler in src/todo_cli.py (parse args, call add_task, save, print success)
+- [X] T030 [US1] Implement list command handler in src/todo_cli.py (parse args, call list_tasks, format output)
+- [X] T031 [US1] Verify all US1 tests pass - run pytest tests/contract/test_cli_interface.py::test_add* and ::test_list*
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
