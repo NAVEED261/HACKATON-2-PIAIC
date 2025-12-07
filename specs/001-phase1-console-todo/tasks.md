@@ -185,20 +185,20 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T062 [P] Add comprehensive error handling for FileNotFoundError in src/services/storage.py (first run scenario)
-- [ ] T063 [P] Add error handling for JSONDecodeError in src/services/storage.py (corrupted file scenario)
-- [ ] T064 [P] Implement atomic file writes in src/services/storage.py (temp file + rename pattern)
-- [ ] T065 [P] Add input validation for title max length (200 chars) in src/utils/validators.py
-- [ ] T066 [P] Add input validation for description max length (1000 chars) in src/utils/validators.py
-- [ ] T067 [P] Write unit tests for all edge cases in tests/unit/test_validators.py (empty title, long title, invalid dates, special characters)
-- [ ] T068 [P] Write integration test for corrupted JSON file recovery in tests/integration/test_storage.py
-- [ ] T069 [P] Write integration test for first-run scenario (no tasks.json) in tests/integration/test_storage.py
-- [ ] T070 [P] Add help text and examples to all argparse commands in src/todo_cli.py
-- [ ] T071 [P] Write unit tests for output formatting in tests/unit/test_formatters.py (table format, empty state, single task)
-- [ ] T072 Run full test suite and ensure 100% pass rate - pytest tests/ -v
-- [ ] T073 Test quickstart.md examples manually to validate user guide accuracy
-- [ ] T074 Create README.md with installation and basic usage instructions
-- [ ] T075 Run constitution compliance check - verify TDD workflow followed, no external dependencies, stdlib only
+- [X] T062 [P] Add comprehensive error handling for FileNotFoundError in src/services/storage.py (first run scenario)
+- [X] T063 [P] Add error handling for JSONDecodeError in src/services/storage.py (corrupted file scenario)
+- [X] T064 [P] Implement atomic file writes in src/services/storage.py (temp file + rename pattern)
+- [X] T065 [P] Add input validation for title max length (200 chars) in src/utils/validators.py
+- [X] T066 [P] Add input validation for description max length (1000 chars) in src/utils/validators.py
+- [X] T067 [P] Write unit tests for all edge cases in tests/unit/test_validators.py (empty title, long title, invalid dates, special characters)
+- [X] T068 [P] Write integration test for corrupted JSON file recovery in tests/integration/test_storage.py
+- [X] T069 [P] Write integration test for first-run scenario (no tasks.json) in tests/integration/test_storage.py
+- [X] T070 [P] Add help text and examples to all argparse commands in src/todo_cli.py
+- [X] T071 [P] Write unit tests for output formatting in tests/unit/test_formatters.py (table format, empty state, single task)
+- [X] T072 Run full test suite and ensure 100% pass rate - pytest tests/ -v
+- [X] T073 Test quickstart.md examples manually to validate user guide accuracy
+- [X] T074 Create README.md with installation and basic usage instructions
+- [X] T075 Run constitution compliance check - verify TDD workflow followed, no external dependencies, stdlib only
 
 ---
 
