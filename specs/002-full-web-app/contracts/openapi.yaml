@@ -1,0 +1,861 @@
+openapi: 3.0.3
+info:
+  title: Todo SaaS Platform API
+  description: |
+    Phase 2 - Full Web App REST API for task management with multi-user support.
+
+    **Features**:
+    - User registration and authentication (JWT)
+    - Task CRUD operations with filtering
+    - User profile management
+    - Password reset via email
+
+    **Authentication**: Bearer token (JWT) required for protected endpoints.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@yourdomain.com
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Development server
+  - url: https://api.yourdomain.com/api/v1
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization endpoints
+  - name: Tasks
+    description: Task management operations (CRUD)
+  - name: Users
+    description: User profile operations
+  - name: Health
+    description: Health check and readiness endpoints
+
+paths:
+  # Authentication Endpoints
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user
+      description: Create a new user account with email and password
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Validation error (weak password, invalid email)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and receive JWT tokens
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many login attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Obtain new access token using refresh token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      description: Revoke refresh token (client should delete stored tokens)
+      operationId: logoutUser
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logged out successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/request-password-reset:
+    post:
+      tags:
+        - Authentication
+      summary: Request password reset
+      description: Send password reset email (always returns 200 to prevent user enumeration)
+      operationId: requestPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+      responses:
+        '200':
+          description: Password reset email sent (if account exists)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: If an account with that email exists, a password reset link has been sent
+        '429':
+          description: Too many reset requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Authentication
+      summary: Reset password with token
+      description: Complete password reset using token from email
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - new_password
+              properties:
+                token:
+                  type: string
+                  description: Reset token from email
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                new_password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: NewSecurePassword123
+                  description: New password (min 8 chars, 1 uppercase, 1 lowercase, 1 digit)
+      responses:
+        '200':
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Password reset successfully
+        '400':
+          description: Invalid token or weak password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Task Endpoints
+  /tasks:
+    get:
+      tags:
+        - Tasks
+      summary: List user's tasks
+      description: Retrieve authenticated user's tasks with optional filters
+      operationId: listTasks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          description: Filter by status
+          required: false
+          schema:
+            type: string
+            enum: [pending, completed, all]
+            default: all
+        - name: priority
+          in: query
+          description: Filter by priority
+          required: false
+          schema:
+            type: string
+            enum: [low, medium, high, all]
+            default: all
+        - name: sort_by
+          in: query
+          description: Sort field
+          required: false
+          schema:
+            type: string
+            enum: [created_at, due_date, priority]
+            default: created_at
+        - name: order
+          in: query
+          description: Sort order
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: limit
+          in: query
+          description: Max results (1-100)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          description: Pagination offset
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Tasks
+      summary: Create new task
+      description: Create a new task for authenticated user
+      operationId: createTask
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tasks/{task_id}:
+    get:
+      tags:
+        - Tasks
+      summary: Get task by ID
+      description: Retrieve a single task owned by authenticated user
+      operationId: getTask
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          description: Task ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Task retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Tasks
+      summary: Update task
+      description: Update an existing task (partial updates allowed)
+      operationId: updateTask
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          description: Task ID
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Tasks
+      summary: Delete task
+      description: Delete a task owned by authenticated user
+      operationId: deleteTask
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          description: Task ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Task deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # User Endpoints
+  /users/me:
+    get:
+      tags:
+        - Users
+      summary: Get current user profile
+      description: Retrieve authenticated user's profile
+      operationId: getCurrentUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Users
+      summary: Update user profile
+      description: Update authenticated user's profile (partial updates allowed)
+      operationId: updateCurrentUser
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Health Endpoints
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Basic health check for load balancers
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-12-07T10:30:00Z"
+
+  /ready:
+    get:
+      tags:
+        - Health
+      summary: Readiness check
+      description: Readiness check including database connectivity
+      operationId: readinessCheck
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ready
+                  database:
+                    type: string
+                    example: connected
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-12-07T10:30:00Z"
+        '503':
+          description: Service not ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: not_ready
+                  database:
+                    type: string
+                    example: disconnected
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-12-07T10:30:00Z"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token (24h expiry)
+
+  schemas:
+    # Authentication Schemas
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - display_name
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: SecurePassword123
+          description: Min 8 chars, 1 uppercase, 1 lowercase, 1 digit
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: John Doe
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          example: SecurePassword123
+
+    RefreshRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        access_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          description: JWT access token (24h expiry)
+        refresh_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          description: JWT refresh token (7d expiry)
+        token_type:
+          type: string
+          example: bearer
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type:
+          type: string
+          example: bearer
+
+    # User Schemas
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        display_name:
+          type: string
+          example: John Doe
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-12-07T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-12-07T10:30:00Z"
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: newemail@example.com
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Jane Doe
+
+    # Task Schemas
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          maxLength: 200
+          example: Complete project proposal
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+          example: Draft and submit Q1 proposal
+        status:
+          type: string
+          enum: [pending, completed]
+          example: pending
+        priority:
+          type: string
+          enum: [low, medium, high]
+          example: high
+        due_date:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-12-15"
+          description: ISO 8601 date format (YYYY-MM-DD)
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-12-07T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-12-07T10:30:00Z"
+
+    CreateTaskRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Complete project proposal
+        description:
+          type: string
+          maxLength: 1000
+          example: Draft and submit Q1 proposal
+        priority:
+          type: string
+          enum: [low, medium, high]
+          default: medium
+          example: high
+        due_date:
+          type: string
+          format: date
+          example: "2025-12-15"
+          description: ISO 8601 date format (YYYY-MM-DD), cannot be in past
+
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Updated project proposal
+        description:
+          type: string
+          maxLength: 1000
+          example: Draft, review, and submit Q1 proposal
+        priority:
+          type: string
+          enum: [low, medium, high]
+          example: medium
+        due_date:
+          type: string
+          format: date
+          example: "2025-12-20"
+          description: ISO 8601 date format (YYYY-MM-DD), cannot be in past
+        status:
+          type: string
+          enum: [pending, completed]
+          example: completed
+
+    TaskListResponse:
+      type: object
+      properties:
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+        total:
+          type: integer
+          example: 42
+          description: Total matching tasks (for pagination)
+        limit:
+          type: integer
+          example: 50
+        offset:
+          type: integer
+          example: 0
+
+    # Error Schema
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: validation_error
+          description: Machine-readable error code
+        message:
+          type: string
+          example: Password must contain at least 1 uppercase letter
+          description: Human-readable error message
+        details:
+          type: object
+          nullable: true
+          example: { "field": "password" }
+          description: Additional error context (optional)
+
+security:
+  - BearerAuth: []
+
