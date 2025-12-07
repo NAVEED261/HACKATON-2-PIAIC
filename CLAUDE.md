@@ -1,4 +1,4 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -336,3 +336,83 @@ This project follows SDD workflow managed via `.specify/` templates and scripts:
 - **User Guide**: `specs/001-phase1-console-todo/quickstart.md`
 - **Compliance**: `CONSTITUTION-COMPLIANCE.md` (Phase 1 validation)
 - **User Documentation**: `README.md` (installation and usage)
+
+### Phase 2 Documentation 🎯 READY FOR IMPLEMENTATION
+
+**Branch**: `002-full-web-app`
+**Status**: Planning complete, tasks generated, ready for `/sp.implement` command
+
+- **Phase 2 Spec**: `specs/002-full-web-app/spec.md` (5 user stories P1-P5, 30 functional requirements)
+- **Phase 2 Plan**: `specs/002-full-web-app/plan.md` (architecture, constitution compliance)
+- **Phase 2 Tasks**: `specs/002-full-web-app/tasks.md` (176 implementation tasks organized by user story)
+- **Research**: `specs/002-full-web-app/research.md` (technology decisions and best practices)
+- **Data Model**: `specs/002-full-web-app/data-model.md` (User, Task, RefreshToken entities with SQLAlchemy)
+- **API Contracts**: `specs/002-full-web-app/contracts/` (REST API documentation + OpenAPI 3.0 spec)
+- **Quickstart**: `specs/002-full-web-app/quickstart.md` (development environment setup)
+- **Requirements Checklist**: `specs/002-full-web-app/checklists/requirements.md` (spec validation)
+
+**Phase 2 Tech Stack**:
+- **Frontend**: Next.js 14+ (TypeScript, React 18+, TailwindCSS)
+- **Backend**: FastAPI (Python 3.11+, SQLAlchemy, Alembic, PyJWT, bcrypt)
+- **Database**: Neon PostgreSQL (serverless, cloud-hosted)
+- **Email**: SendGrid (free tier 100 emails/day)
+- **Testing**: pytest (backend), Jest/Vitest (frontend), Playwright (E2E)
+- **Deployment**: Vercel (frontend), Railway/Render (backend), Neon (database)
+
+**Phase 2 Key Features**:
+- User registration and authentication (JWT tokens)
+- Task CRUD operations via REST API
+- Multi-user support with data isolation
+- Password reset via email verification
+- User profile management
+- Real-time task sync across devices
+- Task search and advanced filtering
+
+**Phase 2 Database Schema**:
+```sql
+-- Users table (new in Phase 2)
+users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  display_name VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+)
+
+-- Tasks table (Phase 1 schema + user_id + updated_at)
+tasks (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(200) NOT NULL,
+  description TEXT,
+  status VARCHAR(20) DEFAULT 'pending',
+  priority VARCHAR(10) DEFAULT 'medium',
+  due_date DATE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,  -- NEW
+  updated_at TIMESTAMP DEFAULT NOW()                       -- NEW
+)
+
+-- Refresh tokens table (new in Phase 2)
+refresh_tokens (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  token VARCHAR(500) UNIQUE NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+)
+```
+
+**Phase 2 Implementation Tasks**: 176 tasks total
+- Setup (15 tasks): Project initialization, dependencies
+- Foundational (20 tasks): Database, models, shared utilities - BLOCKS all user stories
+- US1 Authentication (46 tasks): Registration, login, JWT, password reset
+- US2 Task Management (35 tasks): CRUD operations, filtering, data isolation
+- US3 Real-Time Sync (18 tasks): Multi-device sync, offline support
+- US4 User Profile (15 tasks): Account settings, preferences, dark mode
+- US5 Search & Filtering (11 tasks): Advanced search, date ranges
+- Polish (16 tasks): Security, performance, error handling, deployment
+
+**MVP Scope** (111 tasks): Setup + Foundational + US1 + US2 + Essential polish
+
+**Next Step**: Run `/sp.implement` to execute TDD workflow and begin implementation

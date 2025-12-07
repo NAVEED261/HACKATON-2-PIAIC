@@ -34,3 +34,24 @@ Thumbs.db
 dist/
 build/
 *.egg-info/
+
+# Phase 2: Backend specific
+backend/.env
+backend/venv/
+backend/.venv/
+
+# Phase 2: Frontend specific
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

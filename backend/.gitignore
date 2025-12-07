@@ -1,0 +1,51 @@
+# Python Backend .gitignore
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Alembic
+# Keep migrations/ directory but ignore auto-generated files
+# alembic/versions/*.pyc
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+
+# Distribution
+dist/
+build/
+*.egg-info/
