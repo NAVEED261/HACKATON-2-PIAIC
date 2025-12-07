@@ -23,27 +23,27 @@ This document defines all implementation tasks for Phase 2, organized by user st
 
 ### Backend Setup
 
-- [ ] T001 [P] Create backend/ directory structure per plan.md (src/, tests/, alembic/)
-- [ ] T002 [P] Create backend/requirements.txt with FastAPI, SQLAlchemy, Alembic, PyJWT, bcrypt, psycopg2-binary, sendgrid dependencies
-- [ ] T003 [P] Create backend/requirements-dev.txt with pytest, pytest-asyncio, httpx, pytest-cov dependencies
-- [ ] T004 [P] Create backend/.env.example with DATABASE_URL, JWT_SECRET_KEY, SENDGRID_API_KEY, CORS_ORIGINS placeholders
-- [ ] T005 [P] Create backend/src/config.py to load environment variables using Pydantic BaseSettings
-- [ ] T006 [P] Create backend/.gitignore for Python (venv/, __pycache__/, .env, .pytest_cache/)
+- [X] T001 [P] Create backend/ directory structure per plan.md (src/, tests/, alembic/)
+- [X] T002 [P] Create backend/requirements.txt with FastAPI, SQLAlchemy, Alembic, PyJWT, bcrypt, psycopg2-binary, sendgrid dependencies
+- [X] T003 [P] Create backend/requirements-dev.txt with pytest, pytest-asyncio, httpx, pytest-cov dependencies
+- [X] T004 [P] Create backend/.env.example with DATABASE_URL, JWT_SECRET_KEY, SENDGRID_API_KEY, CORS_ORIGINS placeholders
+- [X] T005 [P] Create backend/src/config.py to load environment variables using Pydantic BaseSettings
+- [X] T006 [P] Create backend/.gitignore for Python (venv/, __pycache__/, .env, .pytest_cache/)
 
 ### Frontend Setup
 
-- [ ] T007 [P] Initialize Next.js 14 project in frontend/ directory with TypeScript and TailwindCSS
-- [ ] T008 [P] Create frontend/src directory structure per plan.md (app/, components/, services/, hooks/, types/, utils/)
-- [ ] T009 [P] Create frontend/.env.local.example with NEXT_PUBLIC_API_URL placeholder
-- [ ] T010 [P] Configure frontend/tsconfig.json with strict mode and path aliases (@/components, @/services, etc.)
-- [ ] T011 [P] Configure frontend/tailwind.config.js with custom theme colors and design tokens
-- [ ] T012 [P] Create frontend/.gitignore for Node.js (.next/, node_modules/, .env.local)
+- [X] T007 [P] Initialize Next.js 14 project in frontend/ directory with TypeScript and TailwindCSS
+- [X] T008 [P] Create frontend/src directory structure per plan.md (app/, components/, services/, hooks/, types/, utils/)
+- [X] T009 [P] Create frontend/.env.local.example with NEXT_PUBLIC_API_URL placeholder
+- [X] T010 [P] Configure frontend/tsconfig.json with strict mode and path aliases (@/components, @/services, etc.)
+- [X] T011 [P] Configure frontend/tailwind.config.js with custom theme colors and design tokens
+- [X] T012 [P] Create frontend/.gitignore for Node.js (.next/, node_modules/, .env.local)
 
 ### Shared Setup
 
-- [ ] T013 [P] Create scripts/migrate-phase1-data.py skeleton with placeholders for JSON → PostgreSQL migration
-- [ ] T014 [P] Update root .gitignore to include backend/ and frontend/ specific patterns
-- [ ] T015 [P] Create .github/workflows/backend-tests.yml for backend CI (pytest on push)
+- [X] T013 [P] Create scripts/migrate-phase1-data.py skeleton with placeholders for JSON → PostgreSQL migration
+- [X] T014 [P] Update root .gitignore to include backend/ and frontend/ specific patterns
+- [X] T015 [P] Create .github/workflows/backend-tests.yml for backend CI (pytest on push)
 
 **Checkpoint**: All directories created, dependencies documented, configuration files in place
 
